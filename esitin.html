@@ -11,7 +11,6 @@
    body {
       background: #000000;
       color: #ffffff;
-      cursor: url(pic/cursor.png), none !important;
    }
 
    div {
@@ -65,6 +64,8 @@
    var iheight;
    var fade_step = 0.20; 
    var fade_interval = 18; 
+   
+   cursor_black = "iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAANElEQVQY02NkYGD4z4AdMMIYTIQU4FLEiC6ATdF/fIoYcSlkQlOAVSEjDocjm8RIlO+IAgCRXQUS+dH88wAAAABJRU5ErkJggg==";
    
    function blit(content) {
       dscreen.innerHTML = content;
@@ -132,6 +133,7 @@
             // current is fading out
             current.style.opacity = max(0, op - fade_step);
          } else {
+            // no current or faded out - start switching to the new slide
             var tw = nextpic.width;
             var th = nextpic.height;
             var sw = iwidth;
@@ -195,6 +197,11 @@
       console.log(e);
    }
 
+   
+   function set_cursor(cursor) {
+      document.body.style.cursor = "URL(data:image/png;base64," + cursor + "), auto";
+   }
+   
    function main() {
       dscreen = document.getElementById("dscreen");
       data = "loading...";
@@ -209,6 +216,7 @@
       document.oncontextmenu = function () {slider(right); return false; };
       window.onresize = function() { };
       data = slides[pos];
+      set_cursor(cursor_black);
       update();
    }
 
