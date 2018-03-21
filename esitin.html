@@ -109,7 +109,7 @@
 
 
    function slider(k) {
-      console.log(k);
+      var last_pos = pos;
       if (k == left) {
          pos -= 1;
       } else if (k == right) {
@@ -120,8 +120,10 @@
          pos -= 5;
       }
       pos = max(0, min(pos, slides.length-1));
-      data = slides[pos];
-      update();
+      if (last_pos != pos) {
+         data = slides[pos];
+         update();
+      }
    }
 
    var nextpic;
