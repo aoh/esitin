@@ -25,7 +25,7 @@
    }
    
    span {
-      top: 50%;
+      top: 24%;
       position: relative;
       -moz-transform: translateY(-50%);
       //margin-top: 20%;
@@ -197,9 +197,9 @@
       return s.match(/\.(jpg|gif|png|jpeg)$/i);
    }
  
-   function save_preload() {
+   function save_preload(name) {
       console.log("loaded " + this.src);
-      images[this.src] = this; 
+      images[this.original_src] = this; 
    } 
    
    function fail_preload() {
@@ -210,6 +210,7 @@
       pic = new Image();
       pic.onload = save_preload;
       pic.onerror = fail_preload;
+      pic.original_src = src;
       pic.src = src;
    }   
    
@@ -245,6 +246,7 @@
    }
 
    function trim(s)  {
+      s = s.replace(RegExp("--.*"), "");
       return s.replace(RegExp("^ *(.*?) *$"), "$1")
    }
    
