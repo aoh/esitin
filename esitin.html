@@ -1,6 +1,8 @@
 <html>
 <head>
 
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+
 <style>
 
    @keyframes fade {
@@ -23,24 +25,20 @@
    }
    
    span {
-      margin-top: 20%;
-      display: inline-block;
-      vertical-align: middle;
-      line-height: normal;
-   }
-   
-   img {
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-      animation: fade 0.2s;
+      top: 50%;
+      position: relative;
+      -moz-transform: translateY(-50%);
+      //margin-top: 20%;
+      //display: inline-block;
+      //vertical-align: middle;
+      //line-height: normal;
    }
    
    h1 {
       color: #eeeeee;
       //text-shadow: 9px 6px 29px #4f4f4f, 3px 2px 0 #555555;
       text-shadow: 3px 2px 0 #555555;
-      animation: fade 0.2s;
+      animation: fade 0.5s;
       font-size: 120px;
    }
   
@@ -55,16 +53,18 @@
 
 <script>
 
-   var dscreen;   // app div
-   var pos;       // current slide
-   var data;      // string content of current slide
-   var nextpic;   // loaded picture currently being changed to
-   var slides;    // separate slides (text for now)
-   
+   var dscreen;      // app div
+   var pos = 0;      // current slide
+   var data = "";    // string content of current slide
+   var nextpic;      // picture currently being changed to
+   var slides = [];  // separate slides (text for now)
+   var images = {};  // image cache
+   var presentation; // presentation dsl
+      
    var iwidth;
    var iheight;
    var fade_step = 0.20; 
-   var fade_interval = 18; 
+   var fade_interval = 10; 
    
    cursor_black = "iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAANElEQVQY02NkYGD4z4AdMMIYTIQU4FLEiC6ATdF/fIoYcSlkQlOAVSEjDocjm8RIlO+IAgCRXQUS+dH88wAAAABJRU5ErkJggg==";
 
@@ -88,18 +88,22 @@
       if (a > b) return a;
       return b;
    }
+
+   function fetch_slides(url) {
+      var req = new XMLHttpRequest();
+      req.open('GET', url, true);
+      req.responseType = "text";
+      req.onreadystatechange = function() {
+         if (req.readyState == 4 && req.status == 200) {
+            presentation = req.responseText;
+            prepare_slides();
+         } else {
+            console.log(req);
+         }
+      }
+      req.send();
+   }
    
-   var presentation = `
-      http://haltp.org/f/glide.png
-      http://haltp.org/f/puut.jpg
-      http://haltp.org/f/puu.jpeg
-      Section I
-      Section II
-      Section III
-      http://haltp.org/f/pi.jpg
-      Fini
-   `;
-         
    function slider(k) {
       var last_pos = pos;
       switch(k) {
@@ -132,6 +136,10 @@
       }
    }
 
+   function next() {
+      slider(39);
+   }
+   
    // handle a transition step in images 
    function imgblitter() {
       var current = document.getElementById("currentpic");
@@ -169,6 +177,7 @@
          // new is fading in
          current.style.opacity = max(1, op + fade_step);
       } else {
+         // all done
          return;
       }
       setTimeout(imgblitter, fade_interval);
@@ -179,16 +188,41 @@
       blit("failed to load " + nextpic.src);
    }
    
-   function blitimage(path) {
-      nextpic = new Image();
-      nextpic.onload = imgblitter;
-      nextpic.onerror = imgfail;
-      nextpic.src = path;
+   function blit_image(img) {
+      nextpic = img;
+      imgblitter();
    }
 
+   function imageurlp(s) {
+      return s.match(/\.(jpg|gif|png|jpeg)$/i);
+   }
+ 
+   function save_preload() {
+      console.log("loaded " + this.src);
+      images[this.src] = this; 
+   } 
+   
+   function fail_preload() {
+      console.log("FAILED TO LOAD " + this.src);
+   } 
+   
+   function preload_image(src) {
+      pic = new Image();
+      pic.onload = save_preload;
+      pic.onerror = fail_preload;
+      pic.src = src;
+   }   
+   
+   function preload_images(slides) {
+      slides.filter(imageurlp).map(preload_image);
+   }
+   
    function update() {
-      if (data.match(/\.(jpg|gif|png|jpeg)$/i)) {
-         blitimage(data);
+      if (images[data]) {
+         blit_image(images[data]);
+      } else if (imageurlp(data)) {
+         blit("<div class=mid><span>loading " + data + "...</span></div>");
+         setTimeout(update, 500);
       } else if (data.match(/</)) {
          blit("<div class=\"mid\"><span>" + data + "</span></div>");
       } else {
@@ -206,10 +240,6 @@
       slider(keycode);
    }
 
-   function btnhandler(e) {
-      console.log(e);
-   }
-   
    function set_cursor(cursor) {
       document.body.style.cursor = "URL(data:image/png;base64," + cursor + "), auto";
    }
@@ -218,10 +248,9 @@
       return s.replace(RegExp("^ *(.*?) *$"), "$1")
    }
    
-   function main() {
-      dscreen = document.getElementById("dscreen");
-      data = "loading...";
+   function prepare_slides() {
       slides = presentation.split(RegExp('\n+')).map(trim).filter(x => x.length > 0)
+      preload_images(slides);
       iwidth = document.body.clientWidth - 120;
       iheight = document.body.clientHeight - 40;
       pos = 0;
@@ -229,16 +258,21 @@
          alert("ERROR: no screen(s) found. Check /var/log/X11.log for details.");
       }
       document.onkeydown = keyhandler;
-      document.onclick = function () {slider(39); return false; };
-      document.oncontextmenu = function () {slider(right); return false; };
+      document.onclick = function () {next(); return false; };
+      //document.oncontextmenu = function () {slider(right); return false; };
       window.onresize = function() { };
       data = slides[pos];
       set_cursor(cursor_black);
       update();
    }
+   
+   function main() {
+      dscreen = document.getElementById("dscreen");
+      data = "loading slides";
+      fetch_slides("./slides.txt");
+   }
 
 </script>
-<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
 </head>
 <body onload="main()">
 <div id="dscreen">
