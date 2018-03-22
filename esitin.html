@@ -40,7 +40,7 @@
       color: #eeeeee;
       //text-shadow: 9px 6px 29px #4f4f4f, 3px 2px 0 #555555;
       text-shadow: 3px 2px 0 #555555;
-      animation: fade 0.5s;
+      animation: fade 0.2s;
       font-size: 120px;
    }
   
@@ -66,8 +66,15 @@
    var fade_interval = 18; 
    
    cursor_black = "iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAANElEQVQY02NkYGD4z4AdMMIYTIQU4FLEiC6ATdF/fIoYcSlkQlOAVSEjDocjm8RIlO+IAgCRXQUS+dH88wAAAABJRU5ErkJggg==";
+
+   function clear() {
+      while(dscreen.childNodes.length > 0) {
+         dscreen.removeChild(dscreen.childNodes[0]);
+      }
+   }   
    
    function blit(content) {
+      clear();
       dscreen.innerHTML = content;
    }
 
@@ -148,8 +155,13 @@
                zw = Math.round(zh * (tw / th));
                zp = 0;
             }
-            data = "<img id=\"currentpic\" style=\"opacity: 0%; padding-top: " + zp + "px\" width=" + zw + " height=" + zh + " src=\"" + nextpic.src + "\">";
-            blit(data);
+            nextpic.id = "currentpic";
+            nextpic.style.opacity = "0%";
+            nextpic.style.paddingTop = zp + "px";
+            nextpic.style.height = zh + "px";
+            nextpic.style.width = zw + "px";
+            clear();
+            dscreen.appendChild(nextpic);
             nextpic = null;
          }
       } else if (op < 1.0) {
@@ -160,7 +172,7 @@
       }
       setTimeout(imgblitter, fade_interval);
    }
-
+   
    function imgfail() {
       console.log("Failed to load " + this.src);
       blit("failed to load " + nextpic.src);
@@ -196,7 +208,6 @@
    function btnhandler(e) {
       console.log(e);
    }
-
    
    function set_cursor(cursor) {
       document.body.style.cursor = "URL(data:image/png;base64," + cursor + "), auto";
