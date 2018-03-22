@@ -59,6 +59,7 @@
    var pos;       // current slide
    var data;      // string content of current slide
    var nextpic;   // loaded picture currently being changed to
+   var slides;    // separate slides (text for now)
    
    var iwidth;
    var iheight;
@@ -87,18 +88,18 @@
       if (a > b) return a;
       return b;
    }
-
-   var slides = [
-      "http://haltp.org/f/glide.png",
-      "http://haltp.org/f/puut.jpg",
-      "http://haltp.org/f/puu.jpeg",
-      "Section I",
-      "Section II",
-      "Section III",
-      "http://haltp.org/f/pi.jpg",
-      "Fini"
-   ];
-
+   
+   var presentation = `
+      http://haltp.org/f/glide.png
+      http://haltp.org/f/puut.jpg
+      http://haltp.org/f/puu.jpeg
+      Section I
+      Section II
+      Section III
+      http://haltp.org/f/pi.jpg
+      Fini
+   `;
+         
    function slider(k) {
       var last_pos = pos;
       switch(k) {
@@ -212,10 +213,15 @@
    function set_cursor(cursor) {
       document.body.style.cursor = "URL(data:image/png;base64," + cursor + "), auto";
    }
+
+   function trim(s)  {
+      return s.replace(RegExp("^ *(.*?) *$"), "$1")
+   }
    
    function main() {
       dscreen = document.getElementById("dscreen");
       data = "loading...";
+      slides = presentation.split(RegExp('\n+')).map(trim).filter(x => x.length > 0)
       iwidth = document.body.clientWidth - 120;
       iheight = document.body.clientHeight - 40;
       pos = 0;
