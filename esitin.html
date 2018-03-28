@@ -13,11 +13,15 @@
    body {
       background: #000000;
       color: #ffffff;
+      margin-top: 0px;
+      padding-top: 0px;
    }
 
    div {
-      height: 97%;
+      padding-top: 10px;
+      margin-top: 0px;
       text-align: center;
+      height: 88%;
    }
    
    .mid {
@@ -27,11 +31,15 @@
    span {
       top: 24%;
       position: relative;
-      -moz-transform: translateY(-50%);
       //margin-top: 20%;
       //display: inline-block;
       //vertical-align: middle;
       //line-height: normal;
+   }
+   
+   .teksti {
+      font-size: 40px;
+      width: 50%;
    }
    
    h1 {
@@ -60,13 +68,18 @@
    var slides = [];  // separate slides (text for now)
    var images = {};  // image cache
    var presentation; // presentation dsl
-      
    var iwidth;
    var iheight;
    var fade_step = 0.20; 
    var fade_interval = 10; 
-   
+
+   cursor_nothing = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQI12NgYAAAAAMAASDVlMcAAAAASUVORK5CYII="
    cursor_black = "iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAANElEQVQY02NkYGD4z4AdMMIYTIQU4FLEiC6ATdF/fIoYcSlkQlOAVSEjDocjm8RIlO+IAgCRXQUS+dH88wAAAABJRU5ErkJggg==";
+   cursor_bw = "iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAQAAAADpb+tAAAAPUlEQVQI132OQQ4AIAjDOuL/vzwvEkATd2xhIJsRCWCBGsyZYEDpwQUHFnUnemeJyPUpIjtv0T8xfuARv2wFuBkKfnYKGAAAAABJRU5ErkJggg=="
+
+   var cursors = [cursor_nothing, cursor_bw];
+   var current_cursor = 0;
+   
 
    function clear() {
       while(dscreen.childNodes.length > 0) {
@@ -124,6 +137,9 @@
             break;
          case 34: // page down
             pos = 0;
+            break;
+         case 77: // m(ouse cursor)
+            next_cursor();
             break;
          default:
             console.log("unhandled key: " + k);
@@ -245,6 +261,11 @@
       document.body.style.cursor = "URL(data:image/png;base64," + cursor + "), auto";
    }
 
+   function next_cursor() {
+     current_cursor = (current_cursor + 1) % cursors.length;
+     set_cursor(cursors[current_cursor]);
+     console.log("Set cursor " + current_cursor);
+   }
    function trim(s)  {
       s = s.replace(RegExp("--.*"), "");
       return s.replace(RegExp("^ *(.*?) *$"), "$1")
@@ -264,7 +285,7 @@
       //document.oncontextmenu = function () {slider(right); return false; };
       window.onresize = function() { };
       data = slides[pos];
-      set_cursor(cursor_black);
+      next_cursor();
       update();
    }
    
@@ -278,7 +299,6 @@
 </head>
 <body onload="main()">
 <div id="dscreen">
-   Loading...
 </div>
 </body>
 </html>
